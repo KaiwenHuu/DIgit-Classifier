@@ -1,1 +1,1 @@
-# Machine-Learning-MNIST-project-CPSC-340
+# MNIST project for Machine Learning course
