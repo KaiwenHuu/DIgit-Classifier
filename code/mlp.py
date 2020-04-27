@@ -1,5 +1,4 @@
 import numpy as np
-import utils
 import optimization
 
 
@@ -30,10 +29,13 @@ def log_sum_exp(Z):
 
 
 class NeuralNet:
-    def __init__(self, hidden_layer_sizes, lammy=1, max_iter=500):
+    def __init__(self, hidden_layer_sizes, lammy, max_iter, epochs, alpha, batch):
         self.hidden_layer_sizes = hidden_layer_sizes
         self.lammy = lammy
         self.max_iter = max_iter
+        self.epochs = epochs
+        self.alpha = alpha
+        self.batch = batch
 
     def funObj(self, weights_flat, X, y):
         weights = unflatten_weights(weights_flat, self.layer_sizes)
@@ -85,7 +87,7 @@ class NeuralNet:
         else:
             return Z
 
-    def fit(self, X, y):
+    def fit(self, X, y): #training algorithm using gradient descent
         if y.ndim == 1:
             y = y[:, None]
         self.layer_sizes = [X.shape[1]] + self.hidden_layer_sizes + [y.shape[1]]
@@ -100,5 +102,23 @@ class NeuralNet:
             weights.append((W, b))
         weights_flat = flatten_weights(weights)
         weights_flat_new, f = optimization.findMin(self.funObj, weights_flat, self.max_iter, X, y, verbose=True)
+
+        self.weights = unflatten_weights(weights_flat_new, self.layer_sizes)
+
+    def fitSGD(self, X, y): #training algorithm using min_batch sgd
+        if y.ndim == 1:
+            y = y[:, None]
+        self.layer_sizes = [X.shape[1]] + self.hidden_layer_sizes + [y.shape[1]]
+        self.classification = y.shape[1] > 1  # assume it's classification iff y has more than 1 column
+
+        # random init
+        scale = 0.01
+        weights = list()
+        for i in range(len(self.layer_sizes) - 1):
+            W = scale * np.random.randn(self.layer_sizes[i + 1], self.layer_sizes[i])
+            b = scale * np.random.randn(1, self.layer_sizes[i + 1])
+            weights.append((W, b))
+        weights_flat = flatten_weights(weights)
+        weights_flat_new, f = optimization.sgd(self.funObj, weights_flat, X, y, self.epochs, self.batch, self.alpha)
 
         self.weights = unflatten_weights(weights_flat_new, self.layer_sizes)

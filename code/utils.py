@@ -1,15 +1,5 @@
-import os.path
-import pickle
-import os
-import sys
 import numpy as np
-from scipy.optimize import approx_fprime
-import matplotlib.pyplot as plt
-import pandas as pd
-from scipy.sparse import csr_matrix as sparse_matrix
-import scipy.sparse
 from scipy import stats
-
 
 def mode(y):
     """Computes the element with the maximum count

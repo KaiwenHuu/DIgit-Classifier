@@ -4,9 +4,9 @@ import optimization
 
 
 class softmaxClassifier:
-    def __init__(self, lammy, maxEvals, alpha, batch):
+    def __init__(self, lammy, epochs, alpha, batch):
         self.lammy = lammy
-        self.maxEvals = maxEvals
+        self.epochs = epochs
         self.alpha = alpha
         self.batch = batch
 
@@ -21,7 +21,7 @@ class softmaxClassifier:
     def fit(self, X, y, Y):
         k = np.unique(y).size
         self.w = np.zeros([X.shape[1], k])
-        self.w, f = optimization.sgd(self.funObj, self.w, X, Y, self.maxEvals, self.batch, self.alpha)
+        self.w, f = optimization.sgd(self.funObj, self.w, X, Y, self.epochs, self.batch, self.alpha)
         return self.w
 
     def predict(self, X):

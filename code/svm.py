@@ -1,13 +1,11 @@
 import numpy as np
-import utils
-import random
 import optimization
 
 
 class multiSVM:
-    def __init__(self, lammy, maxEvals, alpha, batch):
+    def __init__(self, lammy, epochs, alpha, batch):
         self.lammy = lammy
-        self.maxEvals = maxEvals
+        self.epochs = epochs
         self.alpha = alpha
         self.batch = batch
 
@@ -35,11 +33,10 @@ class multiSVM:
     def fit(self, X, y):
         k = np.unique(y).size
         self.w = np.zeros([k, X.shape[1]])
-        self.w, f = optimization.sgd(self.funObj, self.w, X, y, self.maxEvals, self.batch, self.alpha)
+        self.w, f = optimization.sgd(self.funObj, self.w, X, y, self.epochs, self.batch, self.alpha)
         return self.w
 
     def predict(self, X):
         prob = np.dot(X, self.w.T)
         predict = np.argmax(prob, axis=1)
-        print(predict)
         return predict

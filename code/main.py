@@ -48,7 +48,7 @@ if __name__ == '__main__':
 
         N, D1 = X.shape  # X is a N by D1 matrix
         T, D2 = Xtest.shape  # Xtest is a T by D2 matrix
-        K = int(math.log(N, 2))  # K is the hyper parameter for KNN algorithm
+        # K = int(math.log(N, 2))  # K is the hyper parameter for KNN algorithm
 
         model = KNN(K)
         model.fit(X, y)
@@ -128,7 +128,7 @@ if __name__ == '__main__':
             train_set, valid_set, test_set = pickle.load(f, encoding="latin1")
         X, y = train_set
         Xtest, ytest = test_set
-        # print(y)
+
         X = np.float32(X)
         y = np.float32(y)
         Xtest = np.float32(Xtest)
@@ -140,29 +140,30 @@ if __name__ == '__main__':
 
         lams = [1, 1e-1, 1e-2, 1e-3, 1e-4]
         test_error = []
+        train_error = []
 
-        #add bias
-        #ones = np.ones((X.shape[0],1))
-        #X = np.hstack((ones,X))
+        train_bias = np.ones((X.shape[0], 1))
+        test_bias = np.ones((Xtest.shape[0], 1))
+        X = np.hstack((train_bias, X))
+        Xtest = np.hstack((test_bias, Xtest))
 
         for lammy in lams:
-            model = linear_model.softmaxClassifier(lammy=lammy, maxEvals=10, alpha=1e-2, batch=5000)
+            model = linear_model.softmaxClassifier(lammy=lammy, epochs=10, alpha=1, batch=5000)
             model.fit(X, y, Y)
             pred = model.predict(Xtest)
             e = utils.classification_error(ytest, pred)
             print("at lambda ", lammy, "validation error is ", e)
             test_error = np.append(test_error, e)
+            pred = model.predict(X)
+            e = utils.classification_error(y, pred)
+            print("at lambda ", lammy, "train error is ", e)
+            train_error = np.append(train_error, e)
 
-        # model = linear_model.softmaxClassifier(lammy=1, maxEvals=10, alpha=1e-2, batch=5000)
-
-        # model.fit(X, y, Y)
-
-        # pred = model.predict(Xtest)
-        # print("test error is", utils.classification_error(ytest, pred))
-        plt.plot(lams, test_error)
+        plt.plot(lams, test_error, label="validation error")
+        plt.plot(lams, train_error, label="training error")
         plt.title("Multi-Class Linear Classifier")
         plt.xlabel("Lambda")
-        plt.ylabel("Validation Error")
+        plt.ylabel("Error")
         fname = os.path.join("..", "figs", "linear.pdf")
         plt.savefig(fname)
         print("\nFigure saved as '%s" % fname)
@@ -181,11 +182,35 @@ if __name__ == '__main__':
         binarizer = LabelBinarizer()
         Y = binarizer.fit_transform(y)
 
-        model = svm.multiSVM(lammy=1, maxEvals=10, alpha=1e-2, batch=5000)
-        model.fit(X, y)
-        pred = model.predict(Xtest)
-        error = utils.classification_error(ytest, pred)
-        print("test error = %.3f", error)
+        lams = [1, 1e-1, 1e-2, 1e-3, 1e-4]
+        test_error = []
+        train_error = []
+
+        train_bias = np.ones((X.shape[0], 1))
+        test_bias = np.ones((Xtest.shape[0], 1))
+        X = np.hstack((train_bias, X))
+        Xtest = np.hstack((test_bias, Xtest))
+
+        for lammy in lams:
+            model = svm.multiSVM(lammy=lammy, epochs=30, alpha=1, batch=5000)
+            model.fit(X, y)
+            pred = model.predict(Xtest)
+            e = utils.classification_error(ytest, pred)
+            print("at lambda ", lammy, "validation error is ", e)
+            test_error = np.append(test_error, e)
+            pred = model.predict(X)
+            e = utils.classification_error(y, pred)
+            print("at lambda ", lammy, "train error is ", e)
+            train_error = np.append(train_error, e)
+
+        plt.plot(lams, test_error, label="validation error")
+        plt.plot(lams, train_error, label="training error")
+        plt.title("Multi-Class SVM")
+        plt.xlabel("Lambda")
+        plt.ylabel("Error")
+        fname = os.path.join("..", "figs", "svm.pdf")
+        plt.savefig(fname)
+        print("\nFigure saved as '%s" % fname)
 
 
     elif question == "mlp":
@@ -197,8 +222,8 @@ if __name__ == '__main__':
         binarizer = LabelBinarizer()
         Y = binarizer.fit_transform(y)
 
-        model = mlp.NeuralNet(hidden_layer_sizes=[500], lammy=1, max_iter=500)
-        model.fit(X, Y)
+        model = mlp.NeuralNet(hidden_layer_sizes=[500], lammy=1, max_iter=500, epochs=20, batch_size=5000)
+        model.fitSGD(X, y)
         pred = model.predict(Xtest)
         print("test error is", utils.classification_error(ytest, pred))
 
@@ -207,19 +232,20 @@ if __name__ == '__main__':
             train_set, valid_set, test_set = pickle.load(f, encoding="latin1")
         X, y = train_set
         Xtest, ytest = test_set
-        #X = np.float32(X)
-        #y = np.float32(y)
-        #Xtest = np.float32(Xtest)
-        #ytest = np.float32(ytest)
+        # X = np.float32(X)
+        # y = np.float32(y)
+        # Xtest = np.float32(Xtest)
+        # ytest = np.float32(ytest)
 
         binarizer = LabelBinarizer()
         Y = binarizer.fit_transform(y)
 
-        X = X * 256
-        Xtest = Xtest * 256
         y = y.reshape(len(y), 1)
-        X -= int(np.mean(X))
-        X /= int(np.std(X))
+        ytest = ytest.reshape(len(ytest), 1)
+        # mean = np.mean(X)
+        # std = np.mean(X)
+        # X -= int(np.mean(X))
+        # X /= int(np.std(X))
 
         model = cnn.CNN()
         model.fit(X, y)

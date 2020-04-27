@@ -1,10 +1,7 @@
 import numpy as np
 import pickle
-import gzip
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 from optimization import adamGD
-
 
 def convolution(image, filt, bias, s=1):
     (n_f, n_c_f, f, _) = filt.shape  # filter dimensions
