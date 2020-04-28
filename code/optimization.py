@@ -7,13 +7,10 @@ def sgd(funObj, w, X, y, epochs, batch, alpha):
         X, y = shuffle(X, y)
         alpha_t = alpha
         alpha_t /= (t+1) #alpha_t = alpha/(t+1)
-        print("epoch:", t, "- alpha_t: %.4f" % alpha_t)
         for i in range(0, X.shape[0], batch):
             f, g = funObj(w, X, y)
-            #print("old gradient", g)
             w = w - alpha_t * g
             f, g = funObj(w, X, y)
-            #print("new gradient", g)
         print("epoch:", t, "- loss: %.4f" % f)
     return w, f
 

@@ -28,58 +28,7 @@ if __name__ == '__main__':
     io_args = parser.parse_args()
     question = io_args.question
 
-    if question == "1":
-        with gzip.open(os.path.join('..', 'data', 'mnist.pkl.gz'), 'rb') as f:
-            train_set, valid_set, test_set = pickle.load(f, encoding="latin1")
-        X, y = train_set
-        Xtest, ytest = test_set
-
-        binarizer = LabelBinarizer()
-        Y = binarizer.fit_transform(y)
-
-    elif question == "knn":
-        with gzip.open(os.path.join('..', 'data', 'mnist.pkl.gz'), 'rb') as f:
-            train_set, valid_set, test_set = pickle.load(f, encoding="latin1")
-        X, y = train_set
-        Xtest, ytest = test_set
-
-        binarizer = LabelBinarizer()
-        Y = binarizer.fit_transform(y)
-
-        N, D1 = X.shape  # X is a N by D1 matrix
-        T, D2 = Xtest.shape  # Xtest is a T by D2 matrix
-        # K = int(math.log(N, 2))  # K is the hyper parameter for KNN algorithm
-
-        model = KNN(K)
-        model.fit(X, y)
-
-        # Because the data is big, iterate through 1000 examples at a time and compute the errors for each partitions.
-        # Then compute the overall averages of the errors to get the error.
-        i = 0
-        k = 0
-        training_error = []
-        test_error = []
-        while i < N:
-            print(i)
-            j = i + 1000
-            temp = X[i:j]
-            pred = model.predict(temp)
-            temp_training_error = np.mean(pred != y[i:j])
-            training_error = np.append(training_error, temp_training_error)
-            i = j
-        while k < T:
-            print(k)
-            l = k + 1000
-            temp = Xtest[k:l]
-            pred = model.predict(temp)
-            temp_test_error = np.mean(pred != ytest[k:l])
-            test_error = np.append(test_error, temp_test_error)
-            k = l
-
-        print("training error", np.mean(training_error), "test error", np.mean(test_error))
-
-
-    elif question == "knn2":
+    if question == "knn":
         with gzip.open(os.path.join('..', 'data', 'mnist.pkl.gz'), 'rb') as f:
             train_set, valid_set, test_set = pickle.load(f, encoding="latin1")
 
@@ -92,35 +41,31 @@ if __name__ == '__main__':
         N, D1 = X.shape  # X is a N by D1 matrix
         T, D2 = Xtest.shape  # Xtest is a T by D2 matrix
 
-        K = 1
-        while K < 4:
+        K = np.arange(1, 10)
+        test_errors = []
 
-            model = KNN(K)
+        for k in K:
+            model = KNN(k)
             model.fit(X, y)
-
-            # Because the data is big, iterate through 1000 examples at a time and compute the errors for each partitions.
-            # Then compute the overall averages of the errors to get the error.
             i = 0
-            k = 0
-
-            training_error = []
             test_error = []
-            while i < N:
+            while i < Xtest.shape[0]:
                 j = i + 1000
-                temp = X[i:j]
+                temp = Xtest[i:j]
                 pred = model.predict(temp)
-                temp_training_error = np.mean(pred != y[i:j])
-                training_error = np.append(training_error, temp_training_error)
+                temp_e = np.mean(pred != ytest[i:j])
+                test_error = np.append(test_error, temp_e)
                 i = j
-            while k < T:
-                l = k + 1000
-                temp = Xtest[k:l]
-                pred = model.predict(temp)
-                temp_test_error = np.mean(pred != ytest[k:l])
-                test_error = np.append(test_error, temp_test_error)
-                k = l
-            print("for K = ", K, "training error", np.mean(training_error), "test error", np.mean(test_error))
-            K += 1
+            e = np.mean(test_error)
+            test_errors = np.append(test_errors, e)
+            print("for k =", k, "test error %.4f" % e)
+        plt.plot(K, test_errors, label="validation error")
+        plt.title("KNN")
+        plt.xlabel("K")
+        plt.ylabel("Error")
+        fname = os.path.join("..", "figs", "knn.pdf")
+        plt.savefig(fname)
+        print("\nFigure saved as '%s" % fname)
 
 
     elif question == "linear":
@@ -138,7 +83,7 @@ if __name__ == '__main__':
         Y = binarizer.fit_transform(y)
         y_int = np.int32(y)
 
-        lams = [1, 1e-1, 1e-2, 1e-3, 1e-4]
+        lams = [1e-3, 1e-2, 1e-1, 1]
         test_error = []
         train_error = []
 
@@ -182,7 +127,7 @@ if __name__ == '__main__':
         binarizer = LabelBinarizer()
         Y = binarizer.fit_transform(y)
 
-        lams = [1, 1e-1, 1e-2, 1e-3, 1e-4]
+        lams = [1e-3, 1e-2, 1e-1, 1]
         test_error = []
         train_error = []
 
@@ -192,7 +137,7 @@ if __name__ == '__main__':
         Xtest = np.hstack((test_bias, Xtest))
 
         for lammy in lams:
-            model = svm.multiSVM(lammy=lammy, epochs=30, alpha=1, batch=5000)
+            model = svm.multiSVM(lammy=lammy, epochs=50, alpha=1, batch=5000)
             model.fit(X, y)
             pred = model.predict(Xtest)
             e = utils.classification_error(ytest, pred)
@@ -222,8 +167,8 @@ if __name__ == '__main__':
         binarizer = LabelBinarizer()
         Y = binarizer.fit_transform(y)
 
-        model = mlp.NeuralNet(hidden_layer_sizes=[500], lammy=1, max_iter=500, epochs=20, batch_size=5000)
-        model.fitSGD(X, y)
+        model = mlp.NeuralNet(hidden_layer_sizes=[500], lammy=1, max_iter=500)
+        model.fit(X, Y)
         pred = model.predict(Xtest)
         print("test error is", utils.classification_error(ytest, pred))
 
@@ -232,20 +177,12 @@ if __name__ == '__main__':
             train_set, valid_set, test_set = pickle.load(f, encoding="latin1")
         X, y = train_set
         Xtest, ytest = test_set
-        # X = np.float32(X)
-        # y = np.float32(y)
-        # Xtest = np.float32(Xtest)
-        # ytest = np.float32(ytest)
 
         binarizer = LabelBinarizer()
         Y = binarizer.fit_transform(y)
 
         y = y.reshape(len(y), 1)
         ytest = ytest.reshape(len(ytest), 1)
-        # mean = np.mean(X)
-        # std = np.mean(X)
-        # X -= int(np.mean(X))
-        # X /= int(np.std(X))
 
         model = cnn.CNN()
         model.fit(X, y)
