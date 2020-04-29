@@ -83,7 +83,7 @@ if __name__ == '__main__':
         Y = binarizer.fit_transform(y)
         y_int = np.int32(y)
 
-        lams = [1e-3, 1e-2, 1e-1, 1]
+        lams = [2, 1.75, 1.5, 1.25, 1]
         test_error = []
         train_error = []
 
@@ -127,7 +127,7 @@ if __name__ == '__main__':
         binarizer = LabelBinarizer()
         Y = binarizer.fit_transform(y)
 
-        lams = [1e-3, 1e-2, 1e-1, 1]
+        lams = [2, 1.75, 1.5, 1.25, 1]
         test_error = []
         train_error = []
 
