@@ -12,8 +12,8 @@ from knn import KNN
 import utils
 import linear_model
 import svm
-import mlp
 import cnn
+import nn
 
 
 def load_dataset(filename):
@@ -167,10 +167,41 @@ if __name__ == '__main__':
         binarizer = LabelBinarizer()
         Y = binarizer.fit_transform(y)
 
-        model = mlp.NeuralNet(hidden_layer_sizes=[500], lammy=1, max_iter=500)
-        model.fit(X, Y)
-        pred = model.predict(Xtest)
-        print("test error is", utils.classification_error(ytest, pred))
+        y = y.reshape(len(y), 1)
+        ytest = ytest.reshape(len(ytest), 1)
+
+        image_pixels = X.shape[1]
+        k = len(np.unique(y))
+        alpha = 0.01
+        epochs = 20
+        hidden_layer_size = [10, 100, 250, 500, 750]
+        test_errors = []
+        train_errors = []
+
+        for h in hidden_layer_size:
+            model = nn.NN(no_of_in_nodes=image_pixels, no_of_out_nodes=k, no_of_hidden_nodes=h, learning_rate=alpha,
+                          bias=None)
+            weights = model.fit(X, Y, epochs=epochs, intermediate_results=True)
+            for i in range(epochs):
+                print("epoch: ", i)
+                model.wih = weights[i][0]
+                model.who = weights[i][1]
+                corrects, wrongs = model.evaluate(X, y)
+                train_error = 1 - corrects / (corrects + wrongs)
+                print("train error: ", train_error)
+                corrects, wrongs = model.evaluate(Xtest, ytest)
+                test_error = 1 - corrects / (corrects + wrongs)
+                print("test error: ", test_error)
+            test_errors = np.append(test_errors, test_error)
+            train_errors = np.append(train_errors, train_error)
+        plt.plot(hidden_layer_size, test_errors, label="validation error")
+        plt.plot(hidden_layer_size, train_errors, label="training error")
+        plt.title("Neural Network for One Hidden Layer")
+        plt.xlabel("Hidden Layer Size")
+        plt.ylabel("Error")
+        fname = os.path.join("..", "figs", "mlp.pdf")
+        plt.savefig(fname)
+        print("\nFigure saved as '%s" % fname)
 
     elif question == "cnn":
         with gzip.open(os.path.join('..', 'data', 'mnist.pkl.gz'), 'rb') as f:
