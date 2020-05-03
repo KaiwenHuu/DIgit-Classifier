@@ -1,6 +1,8 @@
 
 References:
 
+https://medium.com/@awjuliani/simple-softmax-in-python-tutorial-d6b4c4ed5c16
+
 https://towardsdatascience.com/batch-mini-batch-stochastic-gradient-descent-7a62ecba642a
 
 http://www.mit.edu/~rakhlin/6.883/lectures/lecture05.pdf 
