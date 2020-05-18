@@ -1,5 +1,8 @@
+The data used is the classic MNIST database used in many machine learning researches. 
 
 References:
+
+http://yann.lecun.com/exdb/mnist/
 
 https://medium.com/@awjuliani/simple-softmax-in-python-tutorial-d6b4c4ed5c16
 
