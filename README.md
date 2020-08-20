@@ -1,4 +1,6 @@
-The data used is the classic MNIST database used in many machine learning researches. 
+The data used is the classic MNIST database used in many machine learning researches.
+
+I used KNN, Multi-Class Logistic Classifier, Multi-Class SVM, Multi Layer Perceptron, and Convolutional Neural Network from past school works and open source codes/pseudo codes to train a digit classifying system. The best model yielded a 2.27% test error.
 
 References:
 
